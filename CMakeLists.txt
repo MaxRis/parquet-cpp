@@ -283,6 +283,8 @@ function(ADD_PARQUET_TEST REL_TEST_NAME)
       COMPILE_FLAGS " -DPARQUET_VALGRIND")
     add_test(${TEST_NAME}
       valgrind --tool=memcheck --leak-check=full --error-exitcode=1 ${TEST_PATH})
+  elseif(MSVC)
+    add_test(${TEST_NAME} ${TEST_PATH})
   else()
     add_test(${TEST_NAME}
         ${BUILD_SUPPORT_DIR}/run-test.sh ${CMAKE_BINARY_DIR} test ${TEST_PATH})
@@ -328,8 +330,12 @@ endif()
 include(ThirdpartyToolchain)
 
 # Thrift requires these definitions for some types that we use
-add_definitions(-DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -DHAVE_NETDB_H)
-add_definitions(-fPIC)
+add_definitions(-DHAVE_INTTYPES_H -DHAVE_NETDB_H)
+if (MSVC)
+  add_definitions(-DNOMINMAX)
+else()
+  add_definitions(-DHAVE_NETINET_IN_H -fPIC)
+endif()
 
 #############################################################
 # Compiler flags and release types
@@ -533,8 +539,10 @@ set(THRIFT_SRCS
   src/parquet/parquet_constants.cpp
   src/parquet/parquet_types.cpp)
 
-set_source_files_properties(src/parquet/parquet_types.cpp PROPERTIES
-  COMPILE_FLAGS -Wno-unused-variable)
+if (NOT MSVC)
+  set_source_files_properties(src/parquet/parquet_types.cpp PROPERTIES
+    COMPILE_FLAGS -Wno-unused-variable)
+endif()
 
 # List of thrift output targets
 set(THRIFT_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/parquet)
@@ -661,11 +669,16 @@ if (PARQUET_BUILD_SHARED)
 endif()
 
 if (PARQUET_BUILD_STATIC)
+    if (MSVC)
+        set(LIB_NAME_STATIC parquet_static)
+      else()
+        set(LIB_NAME_STATIC parquet)
+      endif()
     add_library(parquet_static STATIC $<TARGET_OBJECTS:parquet_objlib>)
     set_target_properties(parquet_static
       PROPERTIES
       LIBRARY_OUTPUT_DIRECTORY "${BUILD_OUTPUT_ROOT_DIRECTORY}"
-      OUTPUT_NAME "parquet")
+      OUTPUT_NAME ${LIB_NAME_STATIC})
     target_link_libraries(parquet_static
       LINK_PUBLIC ${LIBPARQUET_INTERFACE_LINK_LIBS})
 endif()
@@ -676,7 +689,9 @@ add_subdirectory(src/parquet/column)
 add_subdirectory(src/parquet/file)
 add_subdirectory(src/parquet/util)
 
-add_subdirectory(benchmarks)
+if (NOT MSVC)
+  add_subdirectory(benchmarks)
+endif()
 add_subdirectory(examples)
 add_subdirectory(tools)
 

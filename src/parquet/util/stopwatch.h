@@ -19,7 +19,11 @@
 #define PARQUET_UTIL_STOPWATCH_H
 
 #include <stdio.h>
+#ifndef _MSC_VER
 #include <sys/time.h>
+#else
+#include <Winsock2.h>
+#endif
 
 #include <ctime>
 #include <iostream>

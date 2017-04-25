@@ -26,7 +26,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 
 #include <boost/algorithm/string.hpp>
 
@@ -182,6 +185,10 @@ int64_t CpuInfo::hardware_flags() {
   return hardware_flags_;
 }
 
+bool CpuInfo::IsSupported(int64_t flag) {
+  return (hardware_flags_ & flag) != 0;
+}
+
 int64_t CpuInfo::CacheSize(CacheLevel level) {
   DCHECK(initialized_);
   return cache_sizes_[level];
@@ -200,6 +207,10 @@ int CpuInfo::num_cores() {
 std::string CpuInfo::model_name() {
   DCHECK(initialized_);
   return model_name_;
+}
+
+bool CpuInfo::initialized() {
+  return initialized_;
 }
 
 }  // namespace parquet

@@ -24,13 +24,15 @@
 #include <cstdint>
 #include <string>
 
+#include "parquet/util/visibility.h"
+
 namespace parquet {
 
 /// CpuInfo is an interface to query for cpu information at runtime.  The caller can
 /// ask for the sizes of the caches and what hardware features are supported.
 /// On Linux, this information is pulled from a couple of sys files (/proc/cpuinfo and
 /// /sys/devices)
-class CpuInfo {
+class PARQUET_EXPORT CpuInfo {
  public:
   static const int64_t SSSE3 = (1 << 1);
   static const int64_t SSE4_1 = (1 << 2);
@@ -55,7 +57,7 @@ class CpuInfo {
   static int64_t hardware_flags();
 
   /// Returns whether of not the cpu supports this flag
-  inline static bool IsSupported(int64_t flag) { return (hardware_flags_ & flag) != 0; }
+  static bool IsSupported(int64_t flag);
 
   /// Toggle a hardware feature on and off.  It is not valid to turn on a feature
   /// that the underlying hardware cannot support. This is useful for testing.
@@ -73,7 +75,7 @@ class CpuInfo {
   /// Returns the model name of the cpu (e.g. Intel i7-2600)
   static std::string model_name();
 
-  static bool initialized() { return initialized_; }
+  static bool initialized();
 
  private:
   static bool initialized_;

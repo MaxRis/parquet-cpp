@@ -31,8 +31,13 @@
 #undef UNLIKELY
 #endif
 
-#define LIKELY(expr) __builtin_expect(!!(expr), 1)
-#define UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+#ifdef _MSC_VER
+  #define LIKELY(expr) 0
+  #define UNLIKELY(expr) 0
+#else
+  #define LIKELY(expr) __builtin_expect(!!(expr), 1)
+  #define UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+#endif
 
 #define PREFETCH(addr) __builtin_prefetch(addr)
 
