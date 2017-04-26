@@ -118,6 +118,52 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
 # ----------------------------------------------------------------------
+# ZLIB
+
+if (NOT PARQUET_ZLIB_VENDORED)
+  find_package(ZLIB)
+endif()
+
+if (NOT ZLIB_FOUND)
+  set(ZLIB_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/zlib_ep/src/zlib_ep-install")
+  set(ZLIB_HOME "${ZLIB_PREFIX}")
+  set(ZLIB_INCLUDE_DIR "${ZLIB_PREFIX}/include")
+  if (MSVC)
+    set(ZLIB_STATIC_LIB_NAME zlibstatic.lib)
+  else()
+    set(ZLIB_STATIC_LIB_NAME libz.a)
+  endif()
+  set(ZLIB_STATIC_LIB "${ZLIB_PREFIX}/lib/${ZLIB_STATIC_LIB_NAME}")
+  set(ZLIB_VENDORED 1)
+  set(ZLIB_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                      -DCMAKE_INSTALL_PREFIX=${ZLIB_PREFIX}
+                      -DCMAKE_C_FLAGS=${EP_C_FLAGS}
+                      -DBUILD_SHARED_LIBS=OFF)
+
+  if (CMAKE_VERSION VERSION_GREATER "3.2")
+    # BUILD_BYPRODUCTS is a 3.2+ feature
+    ExternalProject_Add(zlib_ep
+      URL "http://zlib.net/fossils/zlib-1.2.8.tar.gz"
+      BUILD_BYPRODUCTS "${ZLIB_STATIC_LIB}"
+      CMAKE_ARGS ${ZLIB_CMAKE_ARGS})
+  else()
+    ExternalProject_Add(zlib_ep
+      URL "http://zlib.net/fossils/zlib-1.2.8.tar.gz"
+      CMAKE_ARGS ${ZLIB_CMAKE_ARGS})
+  endif()
+else()
+    set(ZLIB_VENDORED 0)
+endif()
+
+include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
+add_library(zlibstatic STATIC IMPORTED)
+set_target_properties(zlibstatic PROPERTIES IMPORTED_LOCATION ${ZLIB_STATIC_LIB})
+
+if (ZLIB_VENDORED)
+  add_dependencies(zlibstatic zlib_ep)
+endif()
+
+# ----------------------------------------------------------------------
 # Thrift
 
 # find thrift headers and libs
@@ -370,52 +416,6 @@ if (BROTLI_VENDORED)
   add_dependencies(brotlistatic_enc brotli_ep)
   add_dependencies(brotlistatic_dec brotli_ep)
   add_dependencies(brotlistatic_common brotli_ep)
-endif()
-
-# ----------------------------------------------------------------------
-# ZLIB
-
-if (NOT PARQUET_ZLIB_VENDORED)
-  find_package(ZLIB)
-endif()
-
-if (NOT ZLIB_FOUND)
-  set(ZLIB_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/zlib_ep/src/zlib_ep-install")
-  set(ZLIB_HOME "${ZLIB_PREFIX}")
-  set(ZLIB_INCLUDE_DIR "${ZLIB_PREFIX}/include")
-  if (MSVC)
-    set(ZLIB_STATIC_LIB_NAME zlibstatic.lib)
-  else()
-    set(ZLIB_STATIC_LIB_NAME libz.a)
-  endif()
-  set(ZLIB_STATIC_LIB "${ZLIB_PREFIX}/lib/${ZLIB_STATIC_LIB_NAME}")
-  set(ZLIB_VENDORED 1)
-  set(ZLIB_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                      -DCMAKE_INSTALL_PREFIX=${ZLIB_PREFIX}
-                      -DCMAKE_C_FLAGS=${EP_C_FLAGS}
-                      -DBUILD_SHARED_LIBS=OFF)
-
-  if (CMAKE_VERSION VERSION_GREATER "3.2")
-    # BUILD_BYPRODUCTS is a 3.2+ feature
-    ExternalProject_Add(zlib_ep
-      URL "http://zlib.net/fossils/zlib-1.2.8.tar.gz"
-      BUILD_BYPRODUCTS "${ZLIB_STATIC_LIB}"
-      CMAKE_ARGS ${ZLIB_CMAKE_ARGS})
-  else()
-    ExternalProject_Add(zlib_ep
-      URL "http://zlib.net/fossils/zlib-1.2.8.tar.gz"
-      CMAKE_ARGS ${ZLIB_CMAKE_ARGS})
-  endif()
-else()
-    set(ZLIB_VENDORED 0)
-endif()
-
-include_directories(SYSTEM ${ZLIB_INCLUDE_DIRS})
-add_library(zlibstatic STATIC IMPORTED)
-set_target_properties(zlibstatic PROPERTIES IMPORTED_LOCATION ${ZLIB_STATIC_LIB})
-
-if (ZLIB_VENDORED)
-  add_dependencies(zlibstatic zlib_ep)
 endif()
 
 ## GTest
