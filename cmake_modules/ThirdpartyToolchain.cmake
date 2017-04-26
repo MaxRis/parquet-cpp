@@ -127,7 +127,7 @@ endif()
 if (NOT ZLIB_FOUND)
   set(ZLIB_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/zlib_ep/src/zlib_ep-install")
   set(ZLIB_HOME "${ZLIB_PREFIX}")
-  set(ZLIB_INCLUDE_DIR "${ZLIB_PREFIX}/include")
+  set(ZLIB_INCLUDE_DIRS "${ZLIB_PREFIX}/include")
   if (MSVC)
     set(ZLIB_STATIC_LIB_NAME zlibstatic.lib)
   else()
@@ -203,7 +203,7 @@ if (NOT THRIFT_FOUND)
     set (THRIFT_CMAKE_ARGS "-DLIBEVENT_ROOT=${CMAKE_CURRENT_BINARY_DIR}/thrift_ep-prefix/src/thrift_ep/thirdparty/src/Libevent-release-2.1.7-rc"
                            "-DFLEX_EXECUTABLE=${CMAKE_CURRENT_BINARY_DIR}/thrift_ep-prefix/src/thrift_ep/thirdparty/dist/winflexbison/win_flex.exe"
                            "-DBISON_EXECUTABLE=${CMAKE_CURRENT_BINARY_DIR}/thrift_ep-prefix/src/thrift_ep/thirdparty/dist/winflexbison/win_bison.exe"
-                           "-DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR}"
+                           "-DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIRS}"
                            "-DZLIB_LIBRARY=${ZLIB_STATIC_LIB}"
                            "-DWITH_SHARED_LIB=OFF"
                            ${THRIFT_CMAKE_ARGS})
