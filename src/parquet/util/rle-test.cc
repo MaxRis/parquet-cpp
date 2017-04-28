@@ -106,8 +106,8 @@ void TestBitArrayValues(int bit_width, int num_vals) {
   int len = BitUtil::Ceil(bit_width * num_vals, 8);
   const uint64_t mod = bit_width == 64 ? 1 : 1LL << bit_width;
 
-  std::vector<uint8_t> buffer(len);
-  BitWriter writer(buffer.data(), len);
+  uint8_t buffer[len];
+  BitWriter writer(buffer, len);
   for (int i = 0; i < num_vals; ++i) {
     bool result = writer.PutValue(i % mod, bit_width);
     EXPECT_TRUE(result);
@@ -115,7 +115,7 @@ void TestBitArrayValues(int bit_width, int num_vals) {
   writer.Flush();
   EXPECT_EQ(writer.bytes_written(), len);
 
-  BitReader reader(buffer.data(), len);
+  BitReader reader(buffer, len);
   for (int i = 0; i < num_vals; ++i) {
     int64_t val = 0;
     bool result = reader.GetValue(bit_width, &val);
@@ -421,12 +421,12 @@ TEST(BitRle, RepeatedPattern) {
 
 TEST(BitRle, Overflow) {
   for (int bit_width = 1; bit_width < 32; bit_width += 3) {
-    int len = RleEncoder::MinBufferSize(bit_width);
-    std::vector<uint8_t> buffer(len);
+    const int len = RleEncoder::MinBufferSize(bit_width);
+    uint8_t buffer[len];
     int num_added = 0;
     bool parity = true;
 
-    RleEncoder encoder(buffer.data(), len, bit_width);
+    RleEncoder encoder(buffer, len, bit_width);
     // Insert alternating true/false until there is no space left
     while (true) {
       bool result = encoder.Put(parity);
@@ -439,7 +439,7 @@ TEST(BitRle, Overflow) {
     EXPECT_LE(bytes_written, len);
     EXPECT_GT(num_added, 0);
 
-    RleDecoder decoder(buffer.data(), bytes_written, bit_width);
+    RleDecoder decoder(buffer, bytes_written, bit_width);
     parity = true;
     uint32_t v;
     for (int i = 0; i < num_added; ++i) {
