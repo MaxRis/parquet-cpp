@@ -158,9 +158,11 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
       "Thrift static lib suffix used on Windows with MSVC (default md)")
     option(PARQUET_USE_STATIC_CRT
       "Build Parquet with statically linked CRT"
-      ON)
+      OFF)
   endif()
 endif()
+
+message(STATUS "Value of PARQUET_USE_STATIC_CRT is ${PARQUET_USE_STATIC_CRT}")
 
 include(BuildUtils)
 
